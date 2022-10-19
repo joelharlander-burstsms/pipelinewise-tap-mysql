@@ -31,6 +31,39 @@ from tap_mysql.stream_utils import write_schema_message
 from tap_mysql.discover_utils import discover_catalog, desired_columns, should_run_discovery
 from tap_mysql.connection import connect_with_backoff, make_connection_wrapper, MySQLConnection
 
+
+### Added by Joel Harlander 2022-10-18
+#--------------------------------------------------------------------------------------------
+# Danger! Ugly monkey patching code ahead!
+#--------------------------------------------------------------------------------------------
+# NB: Upgrading pymysql from 0.7.11 --> 0.9.3 had the undocumented change
+# to how `0000-00-00 00:00:00` date/time types are returned. In 0.7.11,
+# they are returned as NULL, and in 0.9.3, they are returned as the string
+# `0000-00-00 00:00:00`. To maintain backwards-compatability, we are
+# monkey patching the functions so they continue returning None
+original_convert_datetime = pymysql.converters.convert_datetime
+original_convert_date = pymysql.converters.convert_date
+
+def monkey_patch_datetime(datetime_str):
+    value = original_convert_datetime(datetime_str)
+    if datetime_str == value:
+        return None
+    return value
+
+def monkey_patch_date(date_str):
+    value = original_convert_date(date_str)
+    if date_str == value:
+        return None
+    return value
+
+pymysql.converters.convert_datetime = monkey_patch_datetime
+pymysql.converters.convert_date = monkey_patch_date
+
+pymysql.converters.conversions[pymysql.constants.FIELD_TYPE.DATETIME] = monkey_patch_datetime
+pymysql.converters.conversions[pymysql.constants.FIELD_TYPE.DATE] = monkey_patch_date
+#--------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
+
 LOGGER = singer.get_logger('tap_mysql')
 
 SDC_DELETED_AT = "_sdc_deleted_at"
