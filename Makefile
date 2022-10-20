@@ -1,7 +1,7 @@
 venv:
 	python3 -m venv venv ;\
 	. ./venv/bin/activate ;\
-	pip install --upgrade pip setuptools wheel ;\
+	pip install --upgrade pip setuptools==57.5.0 wheel ;\
 	pip install -e .[test]
 
 pylint:
