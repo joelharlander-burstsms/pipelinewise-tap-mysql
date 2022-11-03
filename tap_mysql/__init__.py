@@ -92,6 +92,7 @@ def binlog_stream_requires_historical(catalog_entry, state):
     if ((log_file and log_pos) or gtid) and (not max_pk_values and not last_pk_fetched):
         return False
 
+    return False #Added by Joel Harlander for CDC only
     return True
 
 
