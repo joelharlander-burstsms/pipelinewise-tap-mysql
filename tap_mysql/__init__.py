@@ -92,8 +92,7 @@ def binlog_stream_requires_historical(catalog_entry, state):
     if ((log_file and log_pos) or gtid) and (not max_pk_values and not last_pk_fetched):
         return False
     
-    # return True
-    return False
+    return True
 
 
 def get_non_binlog_streams(mysql_conn, catalog, config, state):
